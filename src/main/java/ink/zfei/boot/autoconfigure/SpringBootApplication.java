@@ -13,8 +13,7 @@ import java.lang.annotation.*;
 @Documented
 @Inherited
 @SpringBootConfiguration
-//@EnableAutoConfiguration
-
+@EnableAutoConfiguration
 public @interface SpringBootApplication {
 
     Class<?>[] scanBasePackageClasses() default {};

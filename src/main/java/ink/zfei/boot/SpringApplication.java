@@ -2,7 +2,6 @@ package ink.zfei.boot;
 
 import ink.zfei.boot.context.AnnotationConfigServletWebServerApplicationContext;
 import ink.zfei.boot.demo.Starter;
-import ink.zfei.boot.demo.TestBean;
 import ink.zfei.summer.core.ApplicationContext;
 
 import java.io.IOException;
@@ -31,7 +30,7 @@ public class SpringApplication {
         ApplicationContext context = createApplicationContext();
         //2、启动内嵌tomcat
 
-        Object testBean = context.getBean(TestBean.class);
+        Object testBean = context.getBean(Oppps.class);
         System.out.println(testBean);
 
         try {
@@ -45,12 +44,9 @@ public class SpringApplication {
     private ApplicationContext createApplicationContext() {
 
         try {
-            return new AnnotationConfigServletWebServerApplicationContext(defaultPackage);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+            AnnotationConfigServletWebServerApplicationContext context = new AnnotationConfigServletWebServerApplicationContext(defaultPackage,starterClass);
+            return context;
+        } catch (IOException | URISyntaxException | ClassNotFoundException e) {
             e.printStackTrace();
         }
 

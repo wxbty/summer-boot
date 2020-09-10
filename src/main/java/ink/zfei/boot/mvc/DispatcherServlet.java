@@ -27,6 +27,10 @@ public class DispatcherServlet implements Servlet {
 
     public void service(ServletRequest servletRequest, ServletResponse servletResponse) throws ServletException, IOException {
 
+//        if (isGet(servletRequest))
+//        {
+//            doGet();
+//        }
         System.out.println(1111111);
         //1、 解析path
 //        doc.write("<body>xxxx</body>")

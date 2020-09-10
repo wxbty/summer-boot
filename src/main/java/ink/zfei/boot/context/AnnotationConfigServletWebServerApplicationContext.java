@@ -2,6 +2,7 @@ package ink.zfei.boot.context;
 
 import ink.zfei.boot.mvc.DispatcherServlet;
 import ink.zfei.summer.context.AnnotationConfigApplicationContext;
+import ink.zfei.summer.core.annation.AnnotationConfigUtils;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;
@@ -20,9 +21,15 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
     public static String CLASS_PATH = "target/classes";
     public static String INTERNAL_PATH = "/";
 
-    public AnnotationConfigServletWebServerApplicationContext(String basePackages) throws IOException, URISyntaxException, ClassNotFoundException {
-        super(basePackages);
+    public AnnotationConfigServletWebServerApplicationContext(String basePackages, Class<?> componentClasses) throws IOException, URISyntaxException, ClassNotFoundException {
+        super(basePackages,componentClasses);
         createWebServer();
+    }
+
+
+    public void register(Class<?> componentClasses) {
+        AnnotationConfigUtils.registerAnnotationConfigProcessors(this);
+        super.register(componentClasses);
     }
 
     private void createWebServer() {
@@ -63,7 +70,7 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
         } catch (LifecycleException e) {
             e.printStackTrace();
         }
-        tomcat.getServer().await();
+//        tomcat.getServer().await();
 
 
     }
