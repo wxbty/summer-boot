@@ -31,7 +31,9 @@ public class SpringApplication {
         //2、启动内嵌tomcat
 
         Object testBean = context.getBean(Oppps.class);
+        Object popo = context.getBean(Popo.class);
         System.out.println(testBean);
+        System.out.println(popo);
 
         try {
             Thread.sleep(10000000L);
