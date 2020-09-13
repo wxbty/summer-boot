@@ -1,4 +1,4 @@
-package ink.zfei.boot;
+package ink.zfei.boot.demo;
 
 
 import ink.zfei.summer.annation.Import;
@@ -11,8 +11,8 @@ public class MybatisAutoConfiguation {
 
 
     @Bean
-    public Oppps person() {
-        return new Oppps();
+    public RedisProties person() {
+        return new RedisProties();
     }
 
 

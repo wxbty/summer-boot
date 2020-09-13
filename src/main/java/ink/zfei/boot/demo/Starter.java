@@ -1,6 +1,5 @@
 package ink.zfei.boot.demo;
 
-import ink.zfei.boot.SpringApplication;
 import ink.zfei.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
