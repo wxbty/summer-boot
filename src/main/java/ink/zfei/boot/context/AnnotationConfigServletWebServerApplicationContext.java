@@ -1,18 +1,25 @@
 package ink.zfei.boot.context;
 
+import ink.zfei.boot.autoconfigure.web.server.WebServer;
+import ink.zfei.boot.autoconfigure.web.servlet.server.ServletWebServerFactory;
 import ink.zfei.boot.mvc.DispatcherServlet;
 import ink.zfei.summer.context.AnnotationConfigApplicationContext;
+import ink.zfei.summer.context.ApplicationContextException;
 import ink.zfei.summer.core.annotation.AnnotationConfigUtils;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
 public class AnnotationConfigServletWebServerApplicationContext extends AnnotationConfigApplicationContext {
+
+    private volatile WebServer webServer;
+    private ServletContext servletContext;
 
     private int DEFAULT_PORT = 8086;
     public static String TOMCAT_HOSTNAME = "127.0.0.1";
@@ -34,14 +41,19 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
 
     private void createWebServer() {
 
+        WebServer webServer = this.webServer;
+        ServletContext servletContext = getServletContext();
+
+        if (webServer == null && servletContext == null) {
+            ServletWebServerFactory factory = getWebServerFactory();
+            this.webServer = factory.getWebServer(null);
+        }
+
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(DEFAULT_PORT);
         tomcat.setHostname(TOMCAT_HOSTNAME);
         tomcat.setBaseDir("."); // tomcat 信息保存在项目下
 
-        /*
-         * https://www.cnblogs.com/ChenD/p/10061008.html
-         */
         StandardContext myCtx = null;
         try {
             myCtx = (StandardContext) tomcat
@@ -75,6 +87,10 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
 
     }
 
+    public ServletContext getServletContext() {
+        return this.servletContext;
+    }
+
     private void startDaemonAwaitThread(Tomcat tomcat) {
         Thread awaitThread = new Thread("container") {
 
@@ -87,5 +103,19 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
         awaitThread.setContextClassLoader(getClass().getClassLoader());
         awaitThread.setDaemon(false);
         awaitThread.start();
+    }
+
+    protected ServletWebServerFactory getWebServerFactory() {
+        // Use bean names so that we don't consider the hierarchy
+        String[] beanNames = this.getBeanNamesForType(ServletWebServerFactory.class);
+        if (beanNames.length == 0) {
+            throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to missing "
+                    + "ServletWebServerFactory bean.");
+        }
+        if (beanNames.length > 1) {
+            throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to multiple "
+                    + "ServletWebServerFactory beans : " + beanNames);
+        }
+        return this.getBean(beanNames[0], ServletWebServerFactory.class);
     }
 }

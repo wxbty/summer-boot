@@ -1,0 +1,2 @@
+ink.zfei.boot.autoconfigure.EnableAutoConfiguration=\
+ink.zfei.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration
