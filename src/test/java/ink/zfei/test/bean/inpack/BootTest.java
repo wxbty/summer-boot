@@ -1,6 +1,7 @@
 package ink.zfei.test.bean.inpack;
 
 import ink.zfei.boot.autoconfigure.SpringBootApplication;
+import ink.zfei.test.unpack.ImportSelectDemoBean;
 import ink.zfei.test.unpack.RedisProties;
 import ink.zfei.boot.SpringApplication;
 import ink.zfei.summer.beans.factory.NoSuchBeanDefinitionException;
@@ -36,7 +37,7 @@ public class BootTest {
         RedisProties redisProties = (RedisProties) context.getBean("redisProties");
         Assert.assertNotNull(redisProties);
         //测试@Configuration 的@importSelect
-        TestNonBean testNonBean = (TestNonBean) context.getBean("testNonBean");
+        ImportSelectDemoBean testNonBean = (ImportSelectDemoBean) context.getBean("importSelectDemoBean");
         Assert.assertNotNull(testNonBean);
     }
 }

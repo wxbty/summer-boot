@@ -8,7 +8,7 @@ public class MyImportSelect implements ImportSelector {
     @Override
     public String[] selectImports(Class var1) {
         String[] arrs = new String[1];
-        arrs[0] = "ink.zfei.test.unpack.TestNonBean";
+        arrs[0] = "ink.zfei.test.unpack.ImportSelectDemoBean";
         return arrs;
     }
 }

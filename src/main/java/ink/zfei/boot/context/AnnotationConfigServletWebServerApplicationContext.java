@@ -22,7 +22,7 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
     public static String INTERNAL_PATH = "/";
 
     public AnnotationConfigServletWebServerApplicationContext(String basePackages, Class<?> componentClasses) throws IOException, URISyntaxException, ClassNotFoundException {
-        super(basePackages,componentClasses);
+        super(basePackages, componentClasses);
         createWebServer();
     }
 
@@ -70,8 +70,22 @@ public class AnnotationConfigServletWebServerApplicationContext extends Annotati
         } catch (LifecycleException e) {
             e.printStackTrace();
         }
-//        tomcat.getServer().await();
+        startDaemonAwaitThread(tomcat);
 
 
+    }
+
+    private void startDaemonAwaitThread(Tomcat tomcat) {
+        Thread awaitThread = new Thread("container") {
+
+            @Override
+            public void run() {
+                tomcat.getServer().await();
+            }
+
+        };
+        awaitThread.setContextClassLoader(getClass().getClassLoader());
+        awaitThread.setDaemon(false);
+        awaitThread.start();
     }
 }
