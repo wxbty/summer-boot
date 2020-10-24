@@ -1,2 +1,2 @@
 ink.zfei.boot.autoconfigure.EnableAutoConfiguration=\
-ink.zfei.boot.demo.MybatisAutoConfiguation
+ink.zfei.test.MybatisAutoConfiguation

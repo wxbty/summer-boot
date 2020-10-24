@@ -1,4 +1,4 @@
-package ink.zfei.boot.demo;
+package ink.zfei.test.bean.inpack;
 
 import ink.zfei.summer.annation.Component;
 

@@ -1,6 +1,7 @@
 package ink.zfei.boot.autoconfigure;
 
-import ink.zfei.summer.core.annation.Configuration;
+
+import ink.zfei.summer.core.annotation.Configuration;
 
 import java.lang.annotation.*;
 

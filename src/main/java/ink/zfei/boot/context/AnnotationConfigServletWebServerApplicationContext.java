@@ -2,7 +2,7 @@ package ink.zfei.boot.context;
 
 import ink.zfei.boot.mvc.DispatcherServlet;
 import ink.zfei.summer.context.AnnotationConfigApplicationContext;
-import ink.zfei.summer.core.annation.AnnotationConfigUtils;
+import ink.zfei.summer.core.annotation.AnnotationConfigUtils;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;

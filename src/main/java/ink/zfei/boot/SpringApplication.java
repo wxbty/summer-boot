@@ -1,14 +1,11 @@
-package ink.zfei.boot.demo;
+package ink.zfei.boot;
 
-import ink.zfei.boot.WebApplicationType;
-import ink.zfei.boot.autoconfigure.EnableAutoConfiguration;
 import ink.zfei.boot.context.AnnotationConfigServletWebServerApplicationContext;
 import ink.zfei.summer.core.ApplicationContext;
 import ink.zfei.summer.core.ApplicationListener;
 import ink.zfei.summer.core.env.ConfigurableEnvironment;
 import ink.zfei.summer.core.env.StandardEnvironment;
 import ink.zfei.summer.core.io.support.SpringFactoriesLoader;
-import ink.zfei.summer.demo.Water;
 import ink.zfei.summer.web.context.support.StandardServletEnvironment;
 
 import java.io.IOException;
@@ -22,13 +19,13 @@ import java.util.Set;
 public class SpringApplication {
 
     private String defaultPackage;
-    private Class starterClass;
+    private Class<?> starterClass;
     private ConfigurableEnvironment environment;
     private WebApplicationType webApplicationType;
 
     private List<ApplicationListener> listeners;
 
-    public SpringApplication(Class<Starter> starterClass) {
+    public SpringApplication(Class<?> starterClass) {
         this.starterClass = starterClass;
         //判断应用类型
         this.webApplicationType =WebApplicationType.deduceFromClasspath();
@@ -44,12 +41,12 @@ public class SpringApplication {
 
     }
 
-    public static void run(Class<Starter> starterClass, String[] args) {
-        new SpringApplication(starterClass).run(args);
+    public static ApplicationContext run(Class<?> starterClass, String[] args) {
+       return new SpringApplication(starterClass).run(args);
     }
 
 
-    public void run(String[] args) {
+    public ApplicationContext run(String[] args) {
 
         //1、计时器
         //2、容器引用
@@ -65,15 +62,9 @@ public class SpringApplication {
         context = createApplicationContext();
         //2、启动内嵌tomcat
 
-        Object testBean = context.getBean(Water.class);
-        System.out.println(testBean);
-
-        try {
-            Thread.sleep(10000000L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+//        Object testBean = context.getBean(Water.class);
+//        System.out.println(testBean);
+        return context;
     }
 
     private ConfigurableEnvironment prepareEnvironment(List<ApplicationListener> listeners, String[] args) {

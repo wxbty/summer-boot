@@ -1,4 +1,4 @@
-package ink.zfei.boot.demo;
+package ink.zfei.test.unpack;
 
 public class RedisProties {
     public String getHost() {
