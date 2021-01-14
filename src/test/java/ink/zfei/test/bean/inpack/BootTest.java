@@ -1,6 +1,8 @@
 package ink.zfei.test.bean.inpack;
 
 import ink.zfei.boot.autoconfigure.SpringBootApplication;
+import ink.zfei.summer.core.annotation.Bean;
+import ink.zfei.test.Popo;
 import ink.zfei.test.unpack.ImportSelectDemoBean;
 import ink.zfei.test.unpack.RedisProties;
 import ink.zfei.boot.SpringApplication;
@@ -13,6 +15,26 @@ import org.junit.Test;
 @SpringBootApplication
 public class BootTest {
 
+    @Bean
+    public Popo popo() {
+        return new Popo();
+    }
+
+
+    @Test
+    public void annotationBean() {
+        ApplicationContext context = SpringApplication.run(BootTest.class, null);
+        Popo testBean = (Popo) context.getBean("popo");
+        Assert.assertNotNull(testBean);
+        boolean notExistBean;
+        try {
+            context.getBean("testNonBean");
+            notExistBean = false;
+        } catch (NoSuchBeanDefinitionException e) {
+            notExistBean = true;
+        }
+        Assert.assertTrue(notExistBean);
+    }
 
     @Test
     public void scanBasePackage() {

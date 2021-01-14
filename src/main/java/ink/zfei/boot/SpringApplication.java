@@ -1,20 +1,23 @@
 package ink.zfei.boot;
 
-import ink.zfei.boot.context.AnnotationConfigServletWebServerApplicationContext;
+import ink.zfei.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
+import ink.zfei.summer.beans.BeanDefinitionRegistry;
+import ink.zfei.summer.beans.factory.config.ConfigurableListableBeanFactory;
+import ink.zfei.summer.context.ConfigurableApplicationContext;
+import ink.zfei.summer.core.AbstractApplicationContext;
 import ink.zfei.summer.core.ApplicationContext;
 import ink.zfei.summer.core.ApplicationListener;
 import ink.zfei.summer.core.env.ConfigurableEnvironment;
 import ink.zfei.summer.core.env.StandardEnvironment;
 import ink.zfei.summer.core.io.support.SpringFactoriesLoader;
+import ink.zfei.summer.util.Assert;
+import ink.zfei.summer.util.CollectionUtils;
 import ink.zfei.summer.web.context.support.StandardServletEnvironment;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SpringApplication {
 
@@ -24,11 +27,13 @@ public class SpringApplication {
     private WebApplicationType webApplicationType;
 
     private List<ApplicationListener> listeners;
+    private Set<Class<?>> primarySources;
+    private Set<String> sources = new LinkedHashSet<>();
 
     public SpringApplication(Class<?> starterClass) {
         this.starterClass = starterClass;
         //判断应用类型
-        this.webApplicationType =WebApplicationType.deduceFromClasspath();
+        this.webApplicationType = WebApplicationType.deduceFromClasspath();
         //通过spi 获取listener、ApplicationContextInitializer
         setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 
@@ -42,15 +47,15 @@ public class SpringApplication {
     }
 
     public static ApplicationContext run(Class<?> starterClass, String[] args) {
-       return new SpringApplication(starterClass).run(args);
+        return new SpringApplication(starterClass).run(args);
     }
 
 
-    public ApplicationContext run(String[] args) {
+    public ConfigurableApplicationContext run(String[] args) {
 
         //1、计时器
         //2、容器引用
-        ApplicationContext context = null;
+        ConfigurableApplicationContext context = null;
         //3、异常报告
         //4、设置无头模式
         //5、获取springboot级别的所有listener，触发start事件
@@ -61,10 +66,64 @@ public class SpringApplication {
 
         context = createApplicationContext();
         //2、启动内嵌tomcat
+        prepareContext(context, environment);
 
 //        Object testBean = context.getBean(Water.class);
 //        System.out.println(testBean);
         return context;
+    }
+
+    private void prepareContext(ConfigurableApplicationContext context, ConfigurableEnvironment environment) {
+        context.setEnvironment(environment);
+        postProcessApplicationContext(context);
+        applyInitializers(context);
+//        listeners.contextPrepared(context);
+
+        // Add boot specific singleton beans
+        ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+
+        // Load the sources
+        Set<Object> sources = getAllSources();
+        Assert.notEmpty(sources, "Sources must not be empty");
+        load(context, sources.toArray(new Object[0]));
+//        listeners.contextLoaded(context);
+    }
+
+    private void load(ConfigurableApplicationContext context, Object[] sources) {
+        BeanDefinitionLoader loader = createBeanDefinitionLoader(getBeanDefinitionRegistry(context), sources);
+        loader.load();
+    }
+
+    private BeanDefinitionLoader createBeanDefinitionLoader(BeanDefinitionRegistry registry, Object[] sources) {
+        return new BeanDefinitionLoader(registry, sources);
+    }
+
+    private BeanDefinitionRegistry getBeanDefinitionRegistry(ApplicationContext context) {
+        if (context instanceof BeanDefinitionRegistry) {
+            return (BeanDefinitionRegistry) context;
+        }
+        if (context instanceof AbstractApplicationContext) {
+            return (BeanDefinitionRegistry) ((AbstractApplicationContext) context).getBeanFactory();
+        }
+        throw new IllegalStateException("Could not locate BeanDefinitionRegistry");
+    }
+
+    private Set<Object> getAllSources() {
+        Set<Object> allSources = new LinkedHashSet<>();
+        if (!CollectionUtils.isEmpty(this.primarySources)) {
+            allSources.addAll(this.primarySources);
+        }
+        if (!CollectionUtils.isEmpty(this.sources)) {
+            allSources.addAll(this.sources);
+        }
+        return Collections.unmodifiableSet(allSources);
+    }
+
+    private void applyInitializers(ConfigurableApplicationContext context) {
+    }
+
+    //自定义bean命名策略、resourceLoader、参数转换器
+    private void postProcessApplicationContext(ConfigurableApplicationContext context) {
     }
 
     private ConfigurableEnvironment prepareEnvironment(List<ApplicationListener> listeners, String[] args) {
@@ -75,16 +134,11 @@ public class SpringApplication {
 
     }
 
-    private ApplicationContext createApplicationContext() {
+    private ConfigurableApplicationContext createApplicationContext() {
 
-        try {
-            AnnotationConfigServletWebServerApplicationContext context = new AnnotationConfigServletWebServerApplicationContext(defaultPackage, starterClass);
-            return context;
-        } catch (IOException | URISyntaxException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        return new AnnotationConfigServletWebServerApplicationContext();
 
-        return null;
+
     }
 
 
