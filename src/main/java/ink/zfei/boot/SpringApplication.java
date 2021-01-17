@@ -14,15 +14,13 @@ import ink.zfei.summer.util.Assert;
 import ink.zfei.summer.util.CollectionUtils;
 import ink.zfei.summer.web.context.support.StandardServletEnvironment;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.net.URISyntaxException;
+import java.security.AccessControlException;
 import java.util.*;
 
 public class SpringApplication {
 
     private String defaultPackage;
-    private Class<?> starterClass;
     private ConfigurableEnvironment environment;
     private WebApplicationType webApplicationType;
 
@@ -30,8 +28,8 @@ public class SpringApplication {
     private Set<Class<?>> primarySources;
     private Set<String> sources = new LinkedHashSet<>();
 
-    public SpringApplication(Class<?> starterClass) {
-        this.starterClass = starterClass;
+    public SpringApplication(Class<?>... primarySources) {
+        this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
         //判断应用类型
         this.webApplicationType = WebApplicationType.deduceFromClasspath();
         //通过spi 获取listener、ApplicationContextInitializer
@@ -46,8 +44,8 @@ public class SpringApplication {
 
     }
 
-    public static ApplicationContext run(Class<?> starterClass, String[] args) {
-        return new SpringApplication(starterClass).run(args);
+    public static ApplicationContext run(Class<?> primarySource, String[] args) {
+        return new SpringApplication(primarySource).run(args);
     }
 
 
@@ -62,15 +60,23 @@ public class SpringApplication {
         //6、准备环境
         ConfigurableEnvironment environment = prepareEnvironment(listeners, args);
         //1、创建spring容器
-        defaultPackage = starterClass.getPackage().getName();
-
         context = createApplicationContext();
         //2、启动内嵌tomcat
         prepareContext(context, environment);
 
-//        Object testBean = context.getBean(Water.class);
+        refreshContext(context);
+        //        Object testBean = context.getBean(Water.class);
 //        System.out.println(testBean);
         return context;
+    }
+
+    private void refreshContext(ConfigurableApplicationContext context) {
+        refresh(context);
+    }
+
+    protected void refresh(ApplicationContext applicationContext) {
+        Assert.isInstanceOf(AbstractApplicationContext.class, applicationContext);
+        ((AbstractApplicationContext) applicationContext).refresh();
     }
 
     private void prepareContext(ConfigurableApplicationContext context, ConfigurableEnvironment environment) {

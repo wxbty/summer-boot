@@ -9,8 +9,7 @@ public class DispatcherServlet implements Servlet {
 
    private AnnotationConfigServletWebServerApplicationContext appletContext;
 
-    public DispatcherServlet(AnnotationConfigServletWebServerApplicationContext appletContext) {
-        this.appletContext = appletContext;
+    public DispatcherServlet() {
     }
 
     public void init(ServletConfig servletConfig) throws ServletException {

@@ -5,11 +5,12 @@ import ink.zfei.boot.autoconfigure.web.server.WebServerException;
 import ink.zfei.boot.autoconfigure.web.servlet.server.ServletContextInitializer;
 import ink.zfei.boot.autoconfigure.web.servlet.server.ServletWebServerFactory;
 import ink.zfei.summer.util.Assert;
-import org.apache.catalina.*;
+import org.apache.catalina.Context;
+import org.apache.catalina.Host;
+import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
-import org.apache.tomcat.util.modeler.Registry;
 
 import java.io.File;
 import java.io.IOException;

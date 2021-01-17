@@ -20,6 +20,10 @@ public class BootTest {
         return new Popo();
     }
 
+    @Test
+    public void mainTest() {
+        SpringApplication.run(BootTest.class, null);
+    }
 
     @Test
     public void annotationBean() {
