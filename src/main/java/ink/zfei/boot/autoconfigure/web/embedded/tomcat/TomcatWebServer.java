@@ -145,7 +145,7 @@ public class TomcatWebServer implements WebServer {
                 addPreviouslyRemovedConnectors();
                 Connector connector = this.tomcat.getConnector();
                 if (connector != null && this.autoStart) {
-//                    performDeferredLoadOnStartup();
+                    performDeferredLoadOnStartup();
                 }
                 checkThatConnectorsHaveStarted();
                 this.started = true;
@@ -157,6 +157,22 @@ public class TomcatWebServer implements WebServer {
                 Context context = findContext();
                 ContextBindings.unbindClassLoader(context, context.getNamingToken(), getClass().getClassLoader());
             }
+        }
+    }
+
+    private void performDeferredLoadOnStartup() {
+        try {
+            for (Container child : this.tomcat.getHost().findChildren()) {
+                if (child instanceof TomcatEmbeddedContext) {
+                    ((TomcatEmbeddedContext) child).deferredLoadOnStartup();
+                }
+            }
+        }
+        catch (Exception ex) {
+            if (ex instanceof WebServerException) {
+                throw (WebServerException) ex;
+            }
+            throw new WebServerException("Unable to start embedded Tomcat connectors", ex);
         }
     }
 

@@ -63,7 +63,7 @@ public class TomcatServletWebServerFactory implements ServletWebServerFactory {
         context.setLoader(loader);
         addDefaultServlet(context);
         host.addChild(context);
-        configureContext(context, null);
+        configureContext(context, initializers);
     }
 
     public String getContextPath() {

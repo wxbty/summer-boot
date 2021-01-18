@@ -1,13 +1,17 @@
 package ink.zfei.boot.web.servlet.context;
 
 import ink.zfei.boot.autoconfigure.web.server.WebServer;
+import ink.zfei.boot.autoconfigure.web.servlet.server.ServletContextInitializer;
 import ink.zfei.boot.autoconfigure.web.servlet.server.ServletWebServerFactory;
+import ink.zfei.boot.web.servlet.ServletContextInitializerBeans;
 import ink.zfei.summer.beans.factory.config.ConfigurableListableBeanFactory;
 import ink.zfei.summer.context.ApplicationContextException;
 import ink.zfei.web.context.support.GenericWebApplicationContext;
 import org.apache.catalina.startup.Tomcat;
 
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import java.util.Collection;
 
 public class ServletWebServerApplicationContext extends GenericWebApplicationContext {
 
@@ -22,7 +26,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 
         if (webServer == null && servletContext == null) {
             ServletWebServerFactory factory = getWebServerFactory();
-            this.webServer = factory.getWebServer(null);
+            this.webServer = factory.getWebServer(getSelfInitializer());
         }
 
 //        Tomcat tomcat = new Tomcat();
@@ -63,6 +67,21 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 
     }
 
+    private ServletContextInitializer getSelfInitializer() {
+        return this::selfInitialize;
+    }
+
+    private void selfInitialize(ServletContext servletContext) throws ServletException {
+        prepareWebApplicationContext(servletContext);
+        for (ServletContextInitializer beans : getServletContextInitializerBeans()) {
+            beans.onStartup(servletContext);
+        }
+    }
+
+    private void prepareWebApplicationContext(ServletContext servletContext) {
+        setServletContext(servletContext);
+    }
+
     public ServletContext getServletContext() {
         return this.servletContext;
     }
@@ -83,7 +102,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 
     protected ServletWebServerFactory getWebServerFactory() {
         // Use bean names so that we don't consider the hierarchy
-        String[] beanNames = this.getBeanNamesForType(ServletWebServerFactory.class);
+        String[] beanNames = getBeanFactory().getBeanNamesForType(ServletWebServerFactory.class);
         if (beanNames.length == 0) {
             throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to missing "
                     + "ServletWebServerFactory bean.");
@@ -107,4 +126,24 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
         }
     }
 
+    protected Collection<ServletContextInitializer> getServletContextInitializerBeans() {
+        return new ServletContextInitializerBeans(getBeanFactory());
+    }
+
+    @Override
+    protected void finishRefresh() {
+        super.finishRefresh();
+        WebServer webServer = startWebServer();
+        if (webServer != null) {
+            publishEvent(new ServletWebServerInitializedEvent(webServer, this));
+        }
+    }
+
+    private WebServer startWebServer() {
+        WebServer webServer = this.webServer;
+        if (webServer != null) {
+            webServer.start();
+        }
+        return webServer;
+    }
 }
