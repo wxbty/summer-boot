@@ -8,6 +8,7 @@ import ink.zfei.boot.autoconfigure.web.servlet.server.ServletWebServerFactory;
 import ink.zfei.summer.util.Assert;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
+import org.apache.catalina.Valve;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.loader.WebappLoader;
@@ -16,21 +17,17 @@ import org.apache.coyote.AbstractProtocol;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-public class TomcatServletWebServerFactory extends AbstractServletWebServerFactory {
+public class TomcatServletWebServerFactory extends AbstractServletWebServerFactory implements ConfigurableTomcatWebServerFactory {
 
     public static final String DEFAULT_PROTOCOL = "org.apache.coyote.http11.Http11NioProtocol";
     private File baseDirectory;
-    private int port = 8080;
     private String protocol = DEFAULT_PROTOCOL;
     private final List<Connector> additionalTomcatConnectors = new ArrayList<>();
     private String contextPath = "";
-    private String displayName;
     private static final Set<Class<?>> NO_CLASSES = Collections.emptySet();
+    private List<Valve> engineValves = new ArrayList<>();
 
     @Override
     public WebServer getWebServer(ServletContextInitializer... initializers) {
@@ -88,20 +85,9 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
         }
     }
 
-    public int getPort() {
-        return this.port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
 
     protected TomcatWebServer getTomcatWebServer(Tomcat tomcat) {
         return new TomcatWebServer(tomcat, getPort() >= 0);
-    }
-
-    public String getDisplayName() {
-        return this.displayName;
     }
 
     private void addDefaultServlet(Context context) {
@@ -150,5 +136,11 @@ public class TomcatServletWebServerFactory extends AbstractServletWebServerFacto
         //连接器必须设置端口
         connector.setPort(port);
 
+    }
+
+    @Override
+    public void addEngineValves(Valve... engineValves) {
+        Assert.notNull(engineValves, "Valves must not be null");
+        this.engineValves.addAll(Arrays.asList(engineValves));
     }
 }

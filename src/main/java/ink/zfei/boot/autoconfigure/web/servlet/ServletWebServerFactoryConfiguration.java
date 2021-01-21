@@ -10,7 +10,7 @@ import ink.zfei.summer.core.annotation.Configuration;
 public class ServletWebServerFactoryConfiguration {
 
     @Bean
-    TomcatServletWebServerFactory tomcatServletWebServerFactory() {
+    public TomcatServletWebServerFactory tomcatServletWebServerFactory() {
         TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();
         return factory;
     }
