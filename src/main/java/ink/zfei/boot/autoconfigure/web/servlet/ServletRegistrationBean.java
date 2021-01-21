@@ -2,6 +2,8 @@ package ink.zfei.boot.autoconfigure.web.servlet;
 
 import ink.zfei.summer.core.Conventions;
 import ink.zfei.summer.util.Assert;
+import ink.zfei.summer.util.ObjectUtils;
+import ink.zfei.summer.util.StringUtils;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
@@ -10,12 +12,13 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ServletRegistrationBean <T extends Servlet> extends DynamicRegistrationBean<ServletRegistration.Dynamic>{
+public class ServletRegistrationBean<T extends Servlet> extends DynamicRegistrationBean<ServletRegistration.Dynamic> {
 
     private T servlet;
     private boolean alwaysMapUrl = true;
     private Set<String> urlMappings = new LinkedHashSet<>();
     private String name;
+    private static final String[] DEFAULT_MAPPINGS = {"/*"};
 
     public void setName(String name) {
         Assert.hasLength(name, "Name must not be empty");
@@ -63,6 +66,26 @@ public class ServletRegistrationBean <T extends Servlet> extends DynamicRegistra
     public void addUrlMappings(String... urlMappings) {
         Assert.notNull(urlMappings, "UrlMappings must not be null");
         this.urlMappings.addAll(Arrays.asList(urlMappings));
+    }
+
+    /**
+     * tomcat注册servlet后，对servlet进行配置，如url映射路径、是否处理文件、启动顺序
+     * @param registration
+     */
+    @Override
+    protected void configure(ServletRegistration.Dynamic registration) {
+        super.configure(registration);
+        String[] urlMapping = StringUtils.toStringArray(this.urlMappings);
+        if (urlMapping.length == 0 && this.alwaysMapUrl) {
+            urlMapping = DEFAULT_MAPPINGS;
+        }
+        if (!ObjectUtils.isEmpty(urlMapping)) {
+            /**
+             * 往tomcat注册DispatchServlet后，必须配置urlMapping
+             * addMapping方法会移除默认DefaultServlet的url，从而使DispatchServlet作为默认servlet
+             */
+            registration.addMapping(urlMapping);
+        }
     }
 }
 

@@ -2,6 +2,7 @@ package ink.zfei.boot.autoconfigure.web.embedded.tomcat;
 
 import ink.zfei.boot.autoconfigure.web.server.WebServer;
 import ink.zfei.boot.autoconfigure.web.server.WebServerException;
+import ink.zfei.boot.autoconfigure.web.servlet.server.AbstractServletWebServerFactory;
 import ink.zfei.boot.autoconfigure.web.servlet.server.ServletContextInitializer;
 import ink.zfei.boot.autoconfigure.web.servlet.server.ServletWebServerFactory;
 import ink.zfei.summer.util.Assert;
@@ -11,13 +12,16 @@ import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.coyote.AbstractProtocol;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-public class TomcatServletWebServerFactory implements ServletWebServerFactory {
+public class TomcatServletWebServerFactory extends AbstractServletWebServerFactory {
 
     public static final String DEFAULT_PROTOCOL = "org.apache.coyote.http11.Http11NioProtocol";
     private File baseDirectory;
@@ -26,6 +30,7 @@ public class TomcatServletWebServerFactory implements ServletWebServerFactory {
     private final List<Connector> additionalTomcatConnectors = new ArrayList<>();
     private String contextPath = "";
     private String displayName;
+    private static final Set<Class<?>> NO_CLASSES = Collections.emptySet();
 
     @Override
     public WebServer getWebServer(ServletContextInitializer... initializers) {
@@ -34,7 +39,7 @@ public class TomcatServletWebServerFactory implements ServletWebServerFactory {
         tomcat.setBaseDir(baseDir.getAbsolutePath());
         Connector connector = new Connector(this.protocol);
         tomcat.getService().addConnector(connector);
-//        customizeConnector(connector);
+        customizeConnector(connector);
         tomcat.setConnector(connector);
         tomcat.getHost().setAutoDeploy(false);
 //        configureEngine(tomcat.getEngine());
@@ -119,7 +124,8 @@ public class TomcatServletWebServerFactory implements ServletWebServerFactory {
             embeddedContext.setStarter(starter);
             embeddedContext.setFailCtxIfServletStartFails(true);
         }
-
+        //要把servlet初始器注册到tomcat的container，初始化->注册dispatchServlet
+        context.addServletContainerInitializer(starter, NO_CLASSES);
     }
 
     public void setContextPath(String contextPath) {
@@ -137,5 +143,12 @@ public class TomcatServletWebServerFactory implements ServletWebServerFactory {
                 throw new IllegalArgumentException("ContextPath must start with '/' and not end with '/'");
             }
         }
+    }
+
+    protected void customizeConnector(Connector connector) {
+        int port = Math.max(getPort(), 0);
+        //连接器必须设置端口
+        connector.setPort(port);
+
     }
 }

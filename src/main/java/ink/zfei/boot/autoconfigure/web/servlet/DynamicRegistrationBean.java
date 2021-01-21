@@ -17,9 +17,12 @@ public abstract class DynamicRegistrationBean<D extends Registration.Dynamic> ex
             logger.info(StringUtils.capitalize(description) + " was not registered (possibly already registered?)");
             return;
         }
-//        configure(registration);
+        configure(registration);
     }
 
     protected abstract D addRegistration(String description, ServletContext servletContext);
 
+    protected void configure(D registration) {
+
+    }
 }

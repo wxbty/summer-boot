@@ -16,7 +16,6 @@ public class DispatcherServlet implements Servlet {
             //初始化mapping
             //先找到容器里所有带@Controller 的bean
 //          List<Object> list = appletContext.getBean()
-
             //解析controller,把path，和controller实例放到map中
         }
 

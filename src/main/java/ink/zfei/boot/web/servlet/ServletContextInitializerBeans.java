@@ -26,7 +26,7 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
         addServletContextInitializerBeans(beanFactory);
 //        addAdaptableBeans(beanFactory);
         List<ServletContextInitializer> sortedInitializers = this.initializers.values().stream()
-                .flatMap((value) -> value.stream().sorted())
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
         this.sortedList = Collections.unmodifiableList(sortedInitializers);
     }
@@ -76,7 +76,6 @@ public class ServletContextInitializerBeans extends AbstractCollection<ServletCo
             }
         }
         List<Map.Entry<String, T>> beans = new ArrayList<>(map.entrySet());
-//        beans.sort((o1, o2) -> AnnotationAwareOrderComparator.INSTANCE.compare(o1.getValue(), o2.getValue()));
         return beans;
     }
 
