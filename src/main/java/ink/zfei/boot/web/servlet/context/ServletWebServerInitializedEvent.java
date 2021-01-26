@@ -5,5 +5,6 @@ import ink.zfei.summer.core.ApplicationEvent;
 
 public class ServletWebServerInitializedEvent extends ApplicationEvent {
     public ServletWebServerInitializedEvent(WebServer webServer, ServletWebServerApplicationContext servletWebServerApplicationContext) {
+        super(webServer);
     }
 }

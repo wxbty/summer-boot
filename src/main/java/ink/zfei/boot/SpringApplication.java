@@ -1,5 +1,7 @@
 package ink.zfei.boot;
 
+import ink.zfei.boot.context.properties.Binder;
+import ink.zfei.boot.context.properties.bind.Bindable;
 import ink.zfei.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext;
 import ink.zfei.summer.beans.BeanDefinitionRegistry;
 import ink.zfei.summer.beans.factory.config.ConfigurableListableBeanFactory;
@@ -11,23 +13,26 @@ import ink.zfei.summer.core.env.ConfigurableEnvironment;
 import ink.zfei.summer.core.env.StandardEnvironment;
 import ink.zfei.summer.core.io.support.SpringFactoriesLoader;
 import ink.zfei.summer.util.Assert;
+import ink.zfei.summer.util.ClassUtils;
 import ink.zfei.summer.util.CollectionUtils;
+import ink.zfei.summer.util.StringUtils;
 import ink.zfei.summer.web.context.support.StandardServletEnvironment;
 
 import java.lang.reflect.Constructor;
-import java.security.AccessControlException;
 import java.util.*;
 
 public class SpringApplication {
 
-    private String defaultPackage;
     private ConfigurableEnvironment environment;
     private WebApplicationType webApplicationType;
+
+    private Set<String> additionalProfiles = new HashSet<>();
 
     private List<ApplicationListener> listeners;
     private Set<Class<?>> primarySources;
     private Set<String> sources = new LinkedHashSet<>();
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public SpringApplication(Class<?>... primarySources) {
         this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
         //判断应用类型
@@ -56,6 +61,8 @@ public class SpringApplication {
         ConfigurableApplicationContext context = null;
         //3、异常报告
         //4、设置无头模式
+        SpringApplicationRunListeners listeners = getRunListeners(args);
+        listeners.starting();
         //5、获取springboot级别的所有listener，触发start事件
         //6、准备环境
         ConfigurableEnvironment environment = prepareEnvironment(listeners, args);
@@ -132,12 +139,32 @@ public class SpringApplication {
     private void postProcessApplicationContext(ConfigurableApplicationContext context) {
     }
 
-    private ConfigurableEnvironment prepareEnvironment(List<ApplicationListener> listeners, String[] args) {
+    private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners, String[] args) {
 
         ConfigurableEnvironment environment = getOrCreateEnvironment();
-        //todo 把args 放入env中
+        //env设置active profile
+        configureEnvironment(environment, args);
+        //env准备（生成实例）好了要做点什么
+        listeners.environmentPrepared(environment);
+        bindToSpringApplication(environment);
         return environment;
 
+    }
+
+
+    protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
+//        if (this.addConversionService) {
+//            ConversionService conversionService = ApplicationConversionService.getSharedInstance();
+//            environment.setConversionService((ConfigurableConversionService) conversionService);
+//        }
+//        configurePropertySources(environment, args);
+        configureProfiles(environment, args);
+    }
+
+    protected void configureProfiles(ConfigurableEnvironment environment, String[] args) {
+        Set<String> profiles = new LinkedHashSet<>(this.additionalProfiles);
+        profiles.addAll(Arrays.asList(environment.getActiveProfiles()));
+        environment.setActiveProfiles(StringUtils.toStringArray(profiles));
     }
 
     private ConfigurableApplicationContext createApplicationContext() {
@@ -183,4 +210,39 @@ public class SpringApplication {
         }
     }
 
+    private SpringApplicationRunListeners getRunListeners(String[] args) {
+        Class<?>[] types = new Class<?>[]{SpringApplication.class, String[].class};
+        return new SpringApplicationRunListeners(
+                getSpringFactoriesInstances(SpringApplicationRunListener.class, types, this, args));
+    }
+
+    private <T> Collection<T> getSpringFactoriesInstances(Class<T> type, Class<?>[] parameterTypes, Object... args) {
+        ClassLoader classLoader = getClassLoader();
+        // Use names and ensure unique to protect against duplicates
+        Set<String> names = new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(type, classLoader));
+        return createSpringFactoriesInstances(type, parameterTypes, classLoader, args, names);
+    }
+
+
+    public ClassLoader getClassLoader() {
+//        if (this.resourceLoader != null) {
+//            return this.resourceLoader.getClassLoader();
+//        }
+        return ClassUtils.getDefaultClassLoader();
+    }
+
+    /**
+     * 将Environment中的属性值,绑定到某个对象中去
+     * 比如SpringApplication中的属性bannerMode 默认是 Banner.Mode.CONSOLE
+     * 但是我在配置文件中spring.main.banner-mode=log 执行了下面的代码后生效
+     */
+    protected void bindToSpringApplication(ConfigurableEnvironment environment) {
+        try {
+            //将spring.main开头的配置都会绑定到 Bindable.ofInstance(this)中 这个this就是SpringApplication
+            Binder.get(environment).bind("spring.main", Bindable.ofInstance(this));
+        }
+        catch (Exception ex) {
+            throw new IllegalStateException("Cannot bind to SpringApplication", ex);
+        }
+    }
 }

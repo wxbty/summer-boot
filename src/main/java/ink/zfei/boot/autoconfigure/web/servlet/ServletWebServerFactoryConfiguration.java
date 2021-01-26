@@ -16,8 +16,12 @@ public class ServletWebServerFactoryConfiguration {
     }
 
     @Bean
-    public ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer() {
-        ServerProperties serverProperties = new ServerProperties();
+    public ServerProperties serverProperties() {
+        return new ServerProperties();
+    }
+
+    @Bean
+    public ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer(ServerProperties serverProperties) {
         return new ServletWebServerFactoryCustomizer(serverProperties);
     }
 
